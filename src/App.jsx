@@ -7,6 +7,7 @@ import { ScoreDisplay, QuickStats, SkillCategoryBreakdown, RecommendationCard } 
 import ApplicationHistory from './components/ApplicationHistory';
 import DataManagement from './components/DataManagement';
 import ExportPanel from './components/ExportPanel';
+import InlineExportPanel from './components/InlineExportPanel';
 import CVPreview from './components/CVPreview';
 
 const StreemBuddie = () => {
@@ -824,13 +825,14 @@ ${name}`;
                   {/* Export Panel */}
                   {showExportPanel && (
                     <div className="mt-4">
-                      <ExportPanel
+                      <InlineExportPanel
                         cvText={formData.cvText}
                         formData={formData}
                         optimizedCV={optimizedCV}
                         coverLetter={coverLetter}
                         showOriginal={showOriginal}
                         onExportComplete={handleExportComplete}
+                        onClose={() => setShowExportPanel(false)}
                       />
                     </div>
                   )}
