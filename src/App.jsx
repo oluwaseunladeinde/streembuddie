@@ -6,6 +6,9 @@ import { useSessionManager } from './hooks/useSessionManager';
 import { ScoreDisplay, QuickStats, SkillCategoryBreakdown, RecommendationCard } from './components/ScoringComponents';
 import ApplicationHistory from './components/ApplicationHistory';
 import DataManagement from './components/DataManagement';
+import ExportPanel from './components/ExportPanel';
+import InlineExportPanel from './components/InlineExportPanel';
+import CVPreview from './components/CVPreview';
 
 const StreemBuddie = () => {
   const [step, setStep] = useState(1);
@@ -25,6 +28,7 @@ const StreemBuddie = () => {
   const [showHistory, setShowHistory] = useState(false);
   const [showDataManagement, setShowDataManagement] = useState(false);
   const [showAnalysisDashboard, setShowAnalysisDashboard] = useState(true);
+  const [showExportPanel, setShowExportPanel] = useState(false);
 
   // Initialize session manager for auto-save and persistence
   const sessionManager = useSessionManager();
@@ -270,7 +274,7 @@ ${name}`;
     }
   }, [step, optimizedCV, coverLetter, formData, cvAnalysis.score, sessionManager]);
 
-  // Utility function for downloading documents
+  // Utility function for downloading documents (legacy)
   const downloadDocument = (content, filename) => {
     const blob = new Blob([content], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
@@ -281,6 +285,12 @@ ${name}`;
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  };
+
+  // Handle export completion
+  const handleExportComplete = (result) => {
+    console.log('Export completed:', result);
+    // Could add toast notification here
   };
 
   return (
@@ -298,6 +308,13 @@ ${name}`;
               </h1>
             </div>
             <div className="flex items-center space-x-4">
+              <button
+                onClick={() => setShowExportPanel(!showExportPanel)}
+                className="flex items-center space-x-2 px-3 py-2 text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+              >
+                <Download className="h-4 w-4" />
+                <span>Export & Templates</span>
+              </button>
               <button
                 onClick={() => setShowDataManagement(true)}
                 className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
@@ -349,6 +366,20 @@ ${name}`;
           })}
         </div>
 
+        {/* Export Panel Overlay */}
+        {showExportPanel && (
+          <div className="mb-8">
+            <ExportPanel
+              cvText={formData.cvText}
+              formData={formData}
+              optimizedCV={optimizedCV}
+              coverLetter={coverLetter}
+              showOriginal={showOriginal}
+              onExportComplete={handleExportComplete}
+            />
+          </div>
+        )}
+
         {/* Step Content */}
         <div className="bg-white rounded-2xl shadow-xl p-8">
           {/* Step 1: Personal Information */}
@@ -388,7 +419,7 @@ ${name}`;
                       <ChevronRight className={`h-3 w-3 ml-1 transition-transform ${showHistory ? 'rotate-90' : ''}`} />
                     </button>
                   </div>
-                  
+
                   {/* Session Restoration Notice */}
                   {sessionManager.hasRestoredSession && (
                     <div className="bg-green-50 border border-green-200 rounded-md p-3 mb-3">
@@ -398,9 +429,9 @@ ${name}`;
                       </div>
                     </div>
                   )}
-                  
+
                   {showHistory && (
-                    <ApplicationHistory 
+                    <ApplicationHistory
                       applications={sessionManager.applicationHistory}
                       onLoadApplication={handleLoadFromHistory}
                       onDeleteApplication={handleDeleteFromHistory}
@@ -431,13 +462,12 @@ ${name}`;
               {/* Enhanced Drag & Drop Upload Area */}
               <div
                 {...dragHandlers}
-                className={`relative border-2 border-dashed rounded-xl p-12 text-center transition-all duration-300 ${
-                  isDragOver
-                    ? 'border-blue-500 bg-blue-50 scale-105 shadow-lg'
-                    : uploadError
+                className={`relative border-2 border-dashed rounded-xl p-12 text-center transition-all duration-300 ${isDragOver
+                  ? 'border-blue-500 bg-blue-50 scale-105 shadow-lg'
+                  : uploadError
                     ? 'border-red-300 bg-red-50'
                     : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'
-                }`}
+                  }`}
               >
                 {/* Drag Overlay */}
                 {isDragOver && (
@@ -450,19 +480,16 @@ ${name}`;
                 )}
 
                 {/* Upload Icon and Text */}
-                <Upload className={`h-12 w-12 mx-auto mb-4 transition-colors ${
-                  uploadError ? 'text-red-400' : isDragOver ? 'text-blue-500' : 'text-gray-400'
-                }`} />
-                
-                <div className={`text-lg font-medium mb-2 ${
-                  uploadError ? 'text-red-700' : 'text-gray-900'
-                }`}>
+                <Upload className={`h-12 w-12 mx-auto mb-4 transition-colors ${uploadError ? 'text-red-400' : isDragOver ? 'text-blue-500' : 'text-gray-400'
+                  }`} />
+
+                <div className={`text-lg font-medium mb-2 ${uploadError ? 'text-red-700' : 'text-gray-900'
+                  }`}>
                   {uploadError ? 'Upload Error' : 'Drop your CV here or click to browse'}
                 </div>
-                
-                <div className={`text-sm mb-4 ${
-                  uploadError ? 'text-red-600' : 'text-gray-500'
-                }`}>
+
+                <div className={`text-sm mb-4 ${uploadError ? 'text-red-600' : 'text-gray-500'
+                  }`}>
                   {uploadError ? uploadError : 'Supports PDF and Word documents • Max file size: 10MB'}
                 </div>
 
@@ -474,14 +501,13 @@ ${name}`;
                   className="hidden"
                   id="cv-upload"
                 />
-                
+
                 <label
                   htmlFor="cv-upload"
-                  className={`inline-flex items-center px-6 py-3 rounded-lg text-sm font-medium cursor-pointer transition-all transform hover:scale-105 ${
-                    uploadError
-                      ? 'border border-red-300 text-red-700 bg-white hover:bg-red-50'
-                      : 'border border-gray-300 text-gray-700 bg-white hover:bg-gray-50'
-                  }`}
+                  className={`inline-flex items-center px-6 py-3 rounded-lg text-sm font-medium cursor-pointer transition-all transform hover:scale-105 ${uploadError
+                    ? 'border border-red-300 text-red-700 bg-white hover:bg-red-50'
+                    : 'border border-gray-300 text-gray-700 bg-white hover:bg-gray-50'
+                    }`}
                 >
                   Choose File
                 </label>
@@ -502,7 +528,7 @@ ${name}`;
                         </div>
                       </div>
                     </div>
-                    
+
                     {/* Processing Status */}
                     <div className="text-sm">
                       {isExtractingText ? (
@@ -621,35 +647,33 @@ ${name}`;
                       Updated in real-time
                     </div>
                   </div>
-                  
+
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     <div className="bg-white rounded-lg p-3 text-center">
-                      <div className={`text-2xl font-bold ${
-                        cvAnalysis.score >= 70 ? 'text-green-600' : 
+                      <div className={`text-2xl font-bold ${cvAnalysis.score >= 70 ? 'text-green-600' :
                         cvAnalysis.score >= 50 ? 'text-yellow-600' : 'text-red-600'
-                      }`}>
+                        }`}>
                         {cvAnalysis.score}
                       </div>
                       <div className="text-xs text-gray-600">Overall Score</div>
                     </div>
-                    
+
                     <div className="bg-white rounded-lg p-3 text-center">
                       <div className="text-2xl font-bold text-green-600">
                         {cvAnalysis.analysis.totalSkillMatches}
                       </div>
                       <div className="text-xs text-gray-600">Skill Matches</div>
                     </div>
-                    
+
                     <div className="bg-white rounded-lg p-3 text-center">
-                      <div className={`text-2xl font-bold ${
-                        cvAnalysis.analysis.totalMissingSkills <= 3 ? 'text-green-600' : 
+                      <div className={`text-2xl font-bold ${cvAnalysis.analysis.totalMissingSkills <= 3 ? 'text-green-600' :
                         cvAnalysis.analysis.totalMissingSkills <= 7 ? 'text-yellow-600' : 'text-red-600'
-                      }`}>
+                        }`}>
                         {cvAnalysis.analysis.totalMissingSkills}
                       </div>
                       <div className="text-xs text-gray-600">Missing Skills</div>
                     </div>
-                    
+
                     <div className="bg-white rounded-lg p-3 text-center">
                       <div className="text-2xl font-bold text-blue-600">
                         {cvAnalysis.analysis.wordCount}
@@ -657,10 +681,10 @@ ${name}`;
                       <div className="text-xs text-gray-600">Words</div>
                     </div>
                   </div>
-                  
+
                   {cvAnalysis.analysis.totalMissingSkills > 0 && (
                     <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs">
-                      <strong>💡 Quick tip:</strong> Consider mentioning these skills: 
+                      <strong>💡 Quick tip:</strong> Consider mentioning these skills:
                       <span className="font-medium text-yellow-800">
                         {cvAnalysis.topMissingSkills.slice(0, 3).map(s => s.skill).join(', ')}
                       </span>
@@ -706,11 +730,10 @@ ${name}`;
                 <div className="flex items-center space-x-2">
                   <button
                     onClick={() => setShowAnalysisDashboard(!showAnalysisDashboard)}
-                    className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      showAnalysisDashboard 
-                        ? 'bg-blue-600 text-white hover:bg-blue-700'
-                        : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
-                    }`}
+                    className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${showAnalysisDashboard
+                      ? 'bg-blue-600 text-white hover:bg-blue-700'
+                      : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
+                      }`}
                   >
                     <BarChart3 className="h-4 w-4" />
                     <span>{showAnalysisDashboard ? 'Hide' : 'Show'} Analysis</span>
@@ -754,7 +777,7 @@ ${name}`;
                   {/* Skills Analysis */}
                   <div>
                     <h4 className="text-lg font-semibold text-gray-900 mb-4">🎯 Skills Analysis</h4>
-                    <SkillCategoryBreakdown 
+                    <SkillCategoryBreakdown
                       matchesByCategory={cvAnalysis.analysis.matchesByCategory}
                       missingByCategory={cvAnalysis.analysis.missingByCategory}
                     />
@@ -770,26 +793,50 @@ ${name}`;
                     <h3 className="text-lg font-semibold text-gray-900">
                       {showOriginal ? 'Original CV' : 'Optimized CV'}
                       {cvAnalysis.analysis && (
-                        <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
-                          cvAnalysis.score >= 80 ? 'bg-green-100 text-green-800' :
+                        <span className={`ml-2 px-2 py-1 text-xs rounded-full ${cvAnalysis.score >= 80 ? 'bg-green-100 text-green-800' :
                           cvAnalysis.score >= 60 ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-red-100 text-red-800'
-                        }`}>
+                            'bg-red-100 text-red-800'
+                          }`}>
                           Score: {cvAnalysis.score}/100
                         </span>
                       )}
                     </h3>
-                    <button
-                      onClick={() => downloadDocument(
-                        showOriginal ? formData.cvText : optimizedCV,
-                        `${formData.fullName.replace(' ', '_')}_CV_${formData.company}.txt`
-                      )}
-                      className="flex items-center space-x-2 px-3 py-1 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                      <Download className="h-4 w-4" />
-                      <span>Download</span>
-                    </button>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => setShowExportPanel(!showExportPanel)}
+                        className="flex items-center space-x-2 px-3 py-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm rounded-lg hover:from-blue-700 hover:to-purple-700 transition-colors"
+                      >
+                        <Download className="h-4 w-4" />
+                        <span>Export & Templates</span>
+                      </button>
+                      <button
+                        onClick={() => downloadDocument(
+                          showOriginal ? formData.cvText : optimizedCV,
+                          `${formData.fullName.replace(' ', '_')}_CV_${formData.company}.txt`
+                        )}
+                        className="flex items-center space-x-2 px-3 py-1 bg-gray-600 text-white text-sm rounded-lg hover:bg-gray-700 transition-colors"
+                      >
+                        <Download className="h-4 w-4" />
+                        <span>Quick Text</span>
+                      </button>
+                    </div>
                   </div>
+
+                  {/* Export Panel */}
+                  {showExportPanel && (
+                    <div className="mt-4">
+                      <InlineExportPanel
+                        cvText={formData.cvText}
+                        formData={formData}
+                        optimizedCV={optimizedCV}
+                        coverLetter={coverLetter}
+                        showOriginal={showOriginal}
+                        onExportComplete={handleExportComplete}
+                        onClose={() => setShowExportPanel(false)}
+                      />
+                    </div>
+                  )}
+
                   <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 h-96 overflow-y-auto">
                     <pre className="text-sm text-gray-800 whitespace-pre-wrap">
                       {showOriginal ? formData.cvText : optimizedCV}
@@ -868,7 +915,7 @@ ${name}`;
 
       {/* Data Management Modal */}
       {showDataManagement && (
-        <DataManagement 
+        <DataManagement
           sessionManager={sessionManager}
           onClose={() => setShowDataManagement(false)}
         />

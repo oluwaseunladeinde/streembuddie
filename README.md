@@ -15,6 +15,10 @@ StreemBuddie is a modern web application that helps job seekers optimize their C
 - **🎨 Beautiful UI**: Modern, responsive design with smooth animations
 - **🔒 Privacy First**: All processing happens in your browser - no data sent to servers
 - **📱 Mobile Friendly**: Responsive design that works on all devices
+- **📤 Multi-Format Export**: Export CVs as PDF, Word, HTML, or Text with professional templates
+- **🎨 Professional Templates**: 4 beautiful CV designs optimized for different industries
+- **⚙️ Customization Options**: Personalize colors, fonts, and layouts to match your style
+- **👁️ Live Preview**: See exactly how your CV will look before exporting
 
 ## 🚀 Quick Start
 
@@ -52,6 +56,8 @@ npm run lint     # Run ESLint
 - **Build Tool**: Vite with HMR
 - **Code Quality**: ESLint
 - **File Processing**: Custom drag-and-drop implementation
+- **Export Libraries**: jsPDF, docx, html2canvas, file-saver
+- **Template System**: Custom CV template engine with customization options
 
 ## 📋 How to Use
 
@@ -59,6 +65,34 @@ npm run lint     # Run ESLint
 2. **Upload CV**: Drag and drop your CV (PDF, DOC, DOCX) or click to browse
 3. **Job Details**: Enter the company name, role, and job description
 4. **Get Results**: Download your optimized CV and personalized cover letter
+
+## 🎨 Export & Templates
+
+### Professional CV Templates
+- **Modern Professional**: Clean, contemporary design perfect for tech and creative roles
+- **Classic Professional**: Traditional layout ideal for corporate environments
+- **Creative Impact**: Eye-catching design for creative and design professionals
+- **ATS Optimized**: Maximum compatibility with Applicant Tracking Systems
+
+### Export Formats
+- **PDF**: Print-ready, professional appearance (Recommended)
+- **Word (.docx)**: Fully editable, track changes support
+- **HTML**: Web portfolio, mobile responsive
+- **Text**: ATS systems, universal compatibility
+
+### Customization Options
+- **Color Schemes**: Professional, Modern, Creative, and Classic palettes
+- **Font Styles**: Modern, Classic, and Clean typography choices
+- **Layout Variations**: Single-column and two-column designs
+- **Live Preview**: See exactly how your CV will look before exporting
+
+### How to Export
+1. **Access Export Panel**: Click "Export & Templates" in header or CV section
+2. **Choose Template**: Select from 4 professional designs
+3. **Select Format**: Choose export format (PDF recommended)
+4. **Customize**: Adjust colors and fonts (optional)
+5. **Preview**: See your CV with selected template
+6. **Export**: Download in your chosen format
 
 ## 🎯 Recent Updates (August 2025)
 
@@ -91,6 +125,15 @@ npm run lint     # Run ESLint
 - **Local storage utilities** with error handling and data encryption
 - **Component-based architecture** for maintainability
 
+### Multi-Format Export & Templates System 🆕
+- **Professional CV Templates**: 4 different designs (Modern, Classic, Creative, ATS-Optimized)
+- **Multiple Export Formats**: PDF (print-ready), Word (.docx), HTML (web), and Text (ATS)
+- **Template Customization**: Color schemes, fonts, and layout variations
+- **Live Preview System**: See your CV with selected template before exporting
+- **ATS Optimization**: Templates designed for Applicant Tracking System compatibility
+- **Dual Interface**: Full export panel in header, compact inline panel in CV section
+- **Real Document Generation**: Uses jsPDF and docx libraries for production-quality output
+
 ## 🔧 Development
 
 ### Project Structure
@@ -103,10 +146,16 @@ src/
 ├── components/
 │   ├── ScoringComponents.jsx # CV analysis dashboard components
 │   ├── ApplicationHistory.jsx # Previous applications display
-│   └── DataManagement.jsx   # Privacy and data controls
+│   ├── DataManagement.jsx   # Privacy and data controls
+│   ├── ExportPanel.jsx      # Full-featured export interface
+│   ├── InlineExportPanel.jsx # Compact inline export panel
+│   ├── CVPreview.jsx        # Live template preview
+│   └── ExportDemo.jsx       # Export features showcase
 ├── utils/
 │   ├── cvAnalysis.js        # CV analysis utilities
-│   └── localStorage.js      # Local storage management
+│   ├── localStorage.js      # Local storage management
+│   ├── cvExport.js          # Multi-format export utilities
+│   └── cvTemplates.js       # Template system and customization
 ├── App.jsx                  # Main application component
 ├── main.jsx                 # Application entry point
 └── index.css                # Tailwind CSS imports
@@ -120,6 +169,10 @@ src/
 - **Cover Letter Generator**: Personalized cover letter creation
 - **Session Management**: Auto-save and application history
 - **Privacy Controls**: Data management and export tools
+- **Export System**: Multi-format CV export with professional templates
+- **Template Engine**: 4 professional CV designs with customization options
+- **Preview System**: Live template preview before export
+- **Customization Panel**: Color schemes, fonts, and layout options
 
 ## 🚀 Deployment
 
