@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { Upload, FileText, Briefcase, User, Download, Sparkles, Eye, EyeOff, ChevronRight, Check, AlertCircle, BarChart3, History, Settings, RefreshCw } from 'lucide-react';
+import { Upload, FileText, Briefcase, User, Download, Sparkles, Eye, EyeOff, ChevronRight, Check, AlertCircle, BarChart3, History, Settings, RefreshCw, FileEdit } from 'lucide-react';
 import { useDragAndDrop } from './hooks/useDragAndDrop';
 import { useCVAnalysis } from './hooks/useCVAnalysis';
 import { useSessionManager } from './hooks/useSessionManager';
@@ -9,6 +9,8 @@ import DataManagement from './components/DataManagement';
 import ExportPanel from './components/ExportPanel';
 import InlineExportPanel from './components/InlineExportPanel';
 import CVPreview from './components/CVPreview';
+import CVBuilder from './components/CVBuilder';
+import Dashboard from './components/Dashboard';
 
 const StreemBuddie = () => {
   const [step, setStep] = useState(1);
@@ -29,6 +31,8 @@ const StreemBuddie = () => {
   const [showDataManagement, setShowDataManagement] = useState(false);
   const [showAnalysisDashboard, setShowAnalysisDashboard] = useState(true);
   const [showExportPanel, setShowExportPanel] = useState(false);
+  const [showDashboard, setShowDashboard] = useState(false);
+  const [cvCreationMode, setCvCreationMode] = useState('upload'); // 'upload' or 'build'
 
   // Initialize session manager for auto-save and persistence
   const sessionManager = useSessionManager();
@@ -41,6 +45,9 @@ const StreemBuddie = () => {
       setStep(restoredSession.step);
       setShowAnalysisDashboard(restoredSession.showAnalysisDashboard);
       setShowOriginal(restoredSession.showOriginal);
+      if (restoredSession.cvCreationMode) {
+        setCvCreationMode(restoredSession.cvCreationMode);
+      }
     }
   }, [sessionManager]);
 
@@ -50,11 +57,12 @@ const StreemBuddie = () => {
       formData,
       step,
       showAnalysisDashboard,
-      showOriginal
+      showOriginal,
+      cvCreationMode
     });
-  }, [formData, step, showAnalysisDashboard, showOriginal, sessionManager]);
+  }, [formData, step, showAnalysisDashboard, showOriginal, cvCreationMode, sessionManager]);
 
-  // Simulate CV text extraction from file with loading state
+  // Simulate CV text extraction from a file with a loading state
   const handleCVUpload = useCallback((file) => {
     setFormData(prev => ({ ...prev, cvFile: file, cvText: '' })); // Reset cvText when new file is uploaded
     setIsExtractingText(true);
@@ -92,6 +100,11 @@ JavaScript, React, HTML, CSS, Python, Git, Agile, Problem-solving, Team collabor
 
   // Initialize drag-and-drop functionality
   const { isDragOver, error: uploadError, dragHandlers, handleFileInputChange } = useDragAndDrop(handleCVUpload);
+
+  // Handler for CV builder
+  const handleCVBuilderOutput = useCallback((cvText) => {
+    setFormData(prev => ({ ...prev, cvText }));
+  }, []);
 
   // Initialize CV analysis for scoring and insights
   const cvAnalysis = useCVAnalysis(formData.cvText, formData.jobDescription);
@@ -207,7 +220,7 @@ Dear Hiring Manager,
 
 I am writing to express my strong interest in the ${role} position at ${company}. With over 4 years of experience in software development and a proven track record of delivering scalable applications, I am excited about the opportunity to contribute to your innovative team.
 
-In my current role as Software Developer at TechCorp, I have successfully led the development of 15+ enterprise-grade web applications using ${skills}. My experience includes collaborating with cross-functional agile teams, implementing responsive user-centric designs, and working with distributed systems and APIs. These experiences have prepared me well for the challenges outlined in your job description.
+In my current role as a Software Developer at TechCorp, I have successfully led the development of 15+ enterprise-grade web applications using ${skills}. My experience includes collaborating with cross-functional agile teams, implementing responsive user-centric designs, and working with distributed systems and APIs. These experiences have prepared me well for the challenges outlined in your job description.
 
 What particularly excites me about ${company} is your commitment to technological innovation and excellence. Your focus on ${jobDescription.includes('scaling') ? 'scaling solutions' : jobDescription.includes('user') ? 'user experience' : 'cutting-edge technology'} aligns perfectly with my passion for creating impactful software solutions that drive business results.
 
@@ -308,6 +321,13 @@ ${name}`;
               </h1>
             </div>
             <div className="flex items-center space-x-4">
+              <button
+                onClick={() => setShowDashboard(!showDashboard)}
+                className="flex items-center space-x-2 px-3 py-2 text-sm text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors"
+              >
+                <BarChart3 className="h-4 w-4" />
+                <span>Dashboard</span>
+              </button>
               <button
                 onClick={() => setShowExportPanel(!showExportPanel)}
                 className="flex items-center space-x-2 px-3 py-2 text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
@@ -451,122 +471,163 @@ ${name}`;
             </div>
           )}
 
-          {/* Step 2: Enhanced CV Upload with Drag & Drop */}
+          {/* Step 2: CV Upload or Builder */}
           {step === 2 && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Upload Your CV</h2>
-                <p className="text-gray-600">Drag and drop your CV or click to browse (PDF, DOC, DOCX • Max 10MB)</p>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Your CV</h2>
+                <p className="text-gray-600">Upload your existing CV or build a new one from scratch</p>
               </div>
 
-              {/* Enhanced Drag & Drop Upload Area */}
-              <div
-                {...dragHandlers}
-                className={`relative border-2 border-dashed rounded-xl p-12 text-center transition-all duration-300 ${isDragOver
-                  ? 'border-blue-500 bg-blue-50 scale-105 shadow-lg'
-                  : uploadError
-                    ? 'border-red-300 bg-red-50'
-                    : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'
+              {/* CV Creation Mode Toggle */}
+              <div className="flex border-b border-gray-200 mb-6">
+                <button
+                  onClick={() => setCvCreationMode('upload')}
+                  className={`flex items-center px-6 py-3 font-medium text-sm focus:outline-none ${
+                    cvCreationMode === 'upload'
+                      ? 'border-b-2 border-blue-600 text-blue-600'
+                      : 'text-gray-500 hover:text-gray-700'
                   }`}
-              >
-                {/* Drag Overlay */}
-                {isDragOver && (
-                  <div className="absolute inset-0 bg-blue-100 bg-opacity-80 rounded-xl flex items-center justify-center">
-                    <div className="text-center">
-                      <Upload className="h-16 w-16 text-blue-600 mx-auto mb-4 animate-bounce" />
-                      <div className="text-xl font-semibold text-blue-900">Drop your CV here!</div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Upload Icon and Text */}
-                <Upload className={`h-12 w-12 mx-auto mb-4 transition-colors ${uploadError ? 'text-red-400' : isDragOver ? 'text-blue-500' : 'text-gray-400'
-                  }`} />
-
-                <div className={`text-lg font-medium mb-2 ${uploadError ? 'text-red-700' : 'text-gray-900'
-                  }`}>
-                  {uploadError ? 'Upload Error' : 'Drop your CV here or click to browse'}
-                </div>
-
-                <div className={`text-sm mb-4 ${uploadError ? 'text-red-600' : 'text-gray-500'
-                  }`}>
-                  {uploadError ? uploadError : 'Supports PDF and Word documents • Max file size: 10MB'}
-                </div>
-
-                {/* File Input */}
-                <input
-                  type="file"
-                  accept=".pdf,.doc,.docx"
-                  onChange={handleFileInputChange}
-                  className="hidden"
-                  id="cv-upload"
-                />
-
-                <label
-                  htmlFor="cv-upload"
-                  className={`inline-flex items-center px-6 py-3 rounded-lg text-sm font-medium cursor-pointer transition-all transform hover:scale-105 ${uploadError
-                    ? 'border border-red-300 text-red-700 bg-white hover:bg-red-50'
-                    : 'border border-gray-300 text-gray-700 bg-white hover:bg-gray-50'
-                    }`}
                 >
-                  Choose File
-                </label>
+                  <Upload className="h-4 w-4 mr-2" />
+                  Upload CV
+                </button>
+                <button
+                  onClick={() => setCvCreationMode('build')}
+                  className={`flex items-center px-6 py-3 font-medium text-sm focus:outline-none ${
+                    cvCreationMode === 'build'
+                      ? 'border-b-2 border-blue-600 text-blue-600'
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  <FileEdit className="h-4 w-4 mr-2" />
+                  Build CV
+                </button>
               </div>
 
-              {/* File Processing Status */}
-              {formData.cvFile && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <FileText className="h-5 w-5 text-blue-600 mr-2" />
-                      <div>
-                        <div className="text-sm font-medium text-blue-900">
-                          {formData.cvFile.name}
+              {/* CV Upload Mode */}
+              {cvCreationMode === 'upload' && (
+                <div className="space-y-6">
+                  {/* Enhanced Drag & Drop Upload Area */}
+                  <div
+                    {...dragHandlers}
+                    className={`relative border-2 border-dashed rounded-xl p-12 text-center transition-all duration-300 ${isDragOver
+                      ? 'border-blue-500 bg-blue-50 scale-105 shadow-lg'
+                      : uploadError
+                        ? 'border-red-300 bg-red-50'
+                        : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'
+                      }`}
+                  >
+                    {/* Drag Overlay */}
+                    {isDragOver && (
+                      <div className="absolute inset-0 bg-blue-100 bg-opacity-80 rounded-xl flex items-center justify-center">
+                        <div className="text-center">
+                          <Upload className="h-16 w-16 text-blue-600 mx-auto mb-4 animate-bounce" />
+                          <div className="text-xl font-semibold text-blue-900">Drop your CV here!</div>
                         </div>
-                        <div className="text-xs text-blue-600">
-                          {(formData.cvFile.size / 1024 / 1024).toFixed(2)} MB
+                      </div>
+                    )}
+
+                    {/* Upload Icon and Text */}
+                    <Upload className={`h-12 w-12 mx-auto mb-4 transition-colors ${uploadError ? 'text-red-400' : isDragOver ? 'text-blue-500' : 'text-gray-400'
+                      }`} />
+
+                    <div className={`text-lg font-medium mb-2 ${uploadError ? 'text-red-700' : 'text-gray-900'
+                      }`}>
+                      {uploadError ? 'Upload Error' : 'Drop your CV here or click to browse'}
+                    </div>
+
+                    <div className={`text-sm mb-4 ${uploadError ? 'text-red-600' : 'text-gray-500'
+                      }`}>
+                      {uploadError ? uploadError : 'Supports PDF and Word documents • Max file size: 10MB'}
+                    </div>
+
+                    {/* File Input */}
+                    <input
+                      type="file"
+                      accept=".pdf,.doc,.docx"
+                      onChange={handleFileInputChange}
+                      className="hidden"
+                      id="cv-upload"
+                    />
+
+                    <label
+                      htmlFor="cv-upload"
+                      className={`inline-flex items-center px-6 py-3 rounded-lg text-sm font-medium cursor-pointer transition-all transform hover:scale-105 ${uploadError
+                        ? 'border border-red-300 text-red-700 bg-white hover:bg-red-50'
+                        : 'border border-gray-300 text-gray-700 bg-white hover:bg-gray-50'
+                        }`}
+                    >
+                      Choose File
+                    </label>
+                  </div>
+
+                  {/* File Processing Status */}
+                  {formData.cvFile && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <FileText className="h-5 w-5 text-blue-600 mr-2" />
+                          <div>
+                            <div className="text-sm font-medium text-blue-900">
+                              {formData.cvFile.name}
+                            </div>
+                            <div className="text-xs text-blue-600">
+                              {(formData.cvFile.size / 1024 / 1024).toFixed(2)} MB
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Processing Status */}
+                        <div className="text-sm">
+                          {isExtractingText ? (
+                            <div className="flex items-center text-blue-600">
+                              <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent mr-2"></div>
+                              Extracting text...
+                            </div>
+                          ) : formData.cvText ? (
+                            <div className="text-green-600 flex items-center">
+                              <Check className="h-4 w-4 mr-1" />
+                              Ready to optimize
+                            </div>
+                          ) : (
+                            <div className="text-gray-500">Processing...</div>
+                          )}
                         </div>
                       </div>
                     </div>
+                  )}
 
-                    {/* Processing Status */}
-                    <div className="text-sm">
-                      {isExtractingText ? (
-                        <div className="flex items-center text-blue-600">
-                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent mr-2"></div>
-                          Extracting text...
+                  {/* Upload Help Text */}
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0">
+                        <div className="flex items-center justify-center h-8 w-8 rounded-full bg-blue-100">
+                          <span className="text-blue-600 text-sm font-medium">💡</span>
                         </div>
-                      ) : formData.cvText ? (
-                        <div className="text-green-600 flex items-center">
-                          <Check className="h-4 w-4 mr-1" />
-                          Ready to optimize
-                        </div>
-                      ) : (
-                        <div className="text-gray-500">Processing...</div>
-                      )}
+                      </div>
+                      <div className="ml-3">
+                        <h3 className="text-sm font-medium text-gray-900">Tips for best results:</h3>
+                        <ul className="mt-2 text-sm text-gray-600 space-y-1">
+                          <li>• Use a well-formatted CV with clear sections</li>
+                          <li>• Include specific skills and technologies you've used</li>
+                          <li>• Make sure your contact information is current</li>
+                        </ul>
+                      </div>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* Help Text */}
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                <div className="flex items-start">
-                  <div className="flex-shrink-0">
-                    <div className="flex items-center justify-center h-8 w-8 rounded-full bg-blue-100">
-                      <span className="text-blue-600 text-sm font-medium">💡</span>
-                    </div>
-                  </div>
-                  <div className="ml-3">
-                    <h3 className="text-sm font-medium text-gray-900">Tips for best results:</h3>
-                    <ul className="mt-2 text-sm text-gray-600 space-y-1">
-                      <li>• Use a well-formatted CV with clear sections</li>
-                      <li>• Include specific skills and technologies you've used</li>
-                      <li>• Make sure your contact information is current</li>
-                    </ul>
-                  </div>
+              {/* CV Builder Mode */}
+              {cvCreationMode === 'build' && (
+                <div className="space-y-6">
+                  <CVBuilder 
+                    onCVGenerated={handleCVBuilderOutput} 
+                    initialData={{ fullName: formData.fullName }}
+                  />
                 </div>
-              </div>
+              )}
 
               <div className="flex space-x-4">
                 <button
@@ -577,7 +638,7 @@ ${name}`;
                 </button>
                 <button
                   onClick={() => setStep(3)}
-                  disabled={!formData.cvText || isExtractingText}
+                  disabled={!formData.cvText || (cvCreationMode === 'upload' && isExtractingText)}
                   className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-6 rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
                 >
                   Continue
@@ -919,6 +980,15 @@ ${name}`;
           sessionManager={sessionManager}
           onClose={() => setShowDataManagement(false)}
         />
+      )}
+
+      {/* Dashboard Modal */}
+      {showDashboard && (
+        <div className="fixed inset-0 bg-gray-800 bg-opacity-75 z-50 overflow-y-auto">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <Dashboard onClose={() => setShowDashboard(false)} />
+          </div>
+        </div>
       )}
     </div>
   );

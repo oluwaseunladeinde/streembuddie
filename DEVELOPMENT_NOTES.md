@@ -2,6 +2,318 @@
 
 ## Recent Improvements (August 2025)
 
+### ✅ CV Builder Feature (Latest)
+Added a CV builder as an alternative to uploading a CV, providing users with a form-based interface to create their CV from scratch.
+
+#### What Was Added:
+1. **CV Builder Component (`src/components/CVBuilder.jsx`)**
+   - **Form-based CV creation**: Users can now build their CV without uploading a file
+   - **Section-based structure**: Personal info, experience, education, and skills
+   - **Dynamic form fields**: Add/remove experiences, responsibilities, education, and skills
+   - **Real-time CV generation**: CV text is generated as the user fills out the form
+   - **Collapsible sections**: Expandable/collapsible sections for better organization
+
+2. **CV Creation Mode Toggle**
+   - **Tab interface**: Easy switching between upload and build modes
+   - **Seamless integration**: Both modes generate compatible CV text format
+   - **Persistent mode selection**: Mode choice is saved in session
+
+3. **Enhanced User Experience**
+   - **Pre-filled data**: Personal info from Step 1 is carried over to the builder
+   - **Intuitive UI**: Clear section organization with visual feedback
+   - **Mobile responsive**: Works well on all screen sizes
+
+#### Technical Details:
+
+**CV Builder Component Structure**:
+```javascript
+// Main component with form sections
+const CVBuilder = ({ onCVGenerated, initialData = {} }) => {
+  // State for form sections
+  const [personalInfo, setPersonalInfo] = useState({...});
+  const [experiences, setExperiences] = useState([...]);
+  const [education, setEducation] = useState([...]);
+  const [skills, setSkills] = useState([]);
+
+  // Generate CV text whenever form data changes
+  useEffect(() => {
+    // Format CV text in the same structure as uploaded CVs
+    // for compatibility with existing analysis
+  }, [personalInfo, experiences, education, skills]);
+
+  // Form rendering with collapsible sections
+};
+```
+
+**Integration with Main Application**:
+```javascript
+// In App.jsx
+const [cvCreationMode, setCvCreationMode] = useState('upload'); // 'upload' or 'build'
+
+// Handler for CV builder output
+const handleCVBuilderOutput = useCallback((cvText) => {
+  setFormData(prev => ({ ...prev, cvText }));
+}, []);
+
+// Mode toggle UI
+<div className="flex border-b border-gray-200">
+  <button onClick={() => setCvCreationMode('upload')}>Upload CV</button>
+  <button onClick={() => setCvCreationMode('build')}>Build CV</button>
+</div>
+
+// Conditional rendering based on mode
+{cvCreationMode === 'build' && (
+  <CVBuilder 
+    onCVGenerated={handleCVBuilderOutput} 
+    initialData={{ fullName: formData.fullName }}
+  />
+)}
+```
+
+#### Benefits:
+- ✅ **Increased Accessibility**: Users without an existing CV can now use the application
+- ✅ **Guided CV Creation**: Structured form ensures all important sections are included
+- ✅ **Consistent Format**: Generated CVs follow best practices for structure and content
+- ✅ **Seamless Experience**: Same optimization and analysis capabilities for built CVs
+- ✅ **Enhanced User Retention**: Reduces drop-offs from users without ready CVs
+- ✅ **Mobile Friendly**: Form-based approach works well on mobile devices
+
+#### Usage Instructions:
+1. **Select Mode**: Choose "Build CV" in Step 2
+2. **Fill Form**: Complete the sections for personal info, experience, education, and skills
+3. **Review**: CV text is generated automatically as you type
+4. **Continue**: Proceed to job details and optimization as normal
+
+The CV Builder feature significantly enhances the application's value proposition by providing a complete end-to-end solution for job seekers, whether they have an existing CV or need to create one from scratch.
+
+### ✅ SSR/Build Compatibility Fixes
+Fixed critical SSR (Server-Side Rendering) and build failures caused by static imports of heavy libraries.
+
+#### What Was Fixed:
+1. **Static Import Issues in `src/utils/cvExport.js`**
+   - **Problem**: `jsPDF`, `docx`, and `file-saver` were imported at module top-level
+   - **Result**: Caused SSR/build failures due to browser-only dependencies
+   - **Solution**: Converted to dynamic imports with browser environment checks
+
+2. **Dynamic Import Implementation**
+   - **jsPDF**: `const { default: jsPDF } = await import('jspdf')`
+   - **docx**: `const { Document, Packer, ... } = await import('docx')`
+   - **file-saver**: `const { saveAs } = await import('file-saver')`
+
+3. **Browser Environment Safety**
+   - Added `isBrowser()` utility function
+   - All export functions now check for browser environment
+   - Prevents runtime errors in SSR contexts
+
+#### Technical Details:
+
+**Before (Problematic)**:
+```javascript
+import jsPDF from 'jspdf';
+import { Document, Packer, ... } from 'docx';
+import { saveAs } from 'file-saver';
+
+export const exportToPDF = async (cvData, template, customOptions = {}) => {
+  const doc = new jsPDF({ ... }); // ❌ Fails in SSR
+};
+```
+
+**After (Fixed)**:
+```javascript
+export const exportToPDF = async (cvData, template, customOptions = {}) => {
+  if (!isBrowser()) {
+    throw new Error('PDF export is only available in browser environment');
+  }
+
+  const { default: jsPDF } = await import('jspdf');
+  const doc = new jsPDF({ ... }); // ✅ Works in browser only
+};
+```
+
+#### Benefits:
+- ✅ **Build Success**: `npm run build` now completes without errors
+- ✅ **SSR Compatible**: No more server-side import failures
+- ✅ **Runtime Safety**: Clear error messages for non-browser environments
+- ✅ **Code Splitting**: Libraries loaded only when needed
+- ✅ **Performance**: Smaller initial bundle size
+
+#### Files Modified:
+- `src/utils/cvExport.js`: All export functions updated with dynamic imports
+- Browser environment checks added to all export functions
+- Linter errors resolved (unused variables, case block declarations)
+
+### ✅ Null/Undefined Safety Improvements (Latest)
+Enhanced robustness of CV parsing functions to prevent crashes on invalid input.
+
+#### What Was Fixed:
+1. **parseCVData Function Safety**
+   - **Problem**: `cvText.split('\n')` would crash if `cvText` is `null` or `undefined`
+   - **Solution**: Added `const text = String(cvText || '')` coercion at function start
+   - **Result**: Function now safely handles any input type
+
+2. **Contact Extraction Functions Safety**
+   - **extractEmail()**: Added `String(text || '')` coercion
+   - **extractPhone()**: Added `String(text || '')` coercion  
+   - **extractPeriod()**: Added `String(text || '')` coercion
+   - **Result**: All regex operations now safe from crashes
+
+3. **Input Validation Pattern**
+   - **Before**: Direct string operations on potentially null input
+   - **After**: Safe string coercion with fallback to empty string
+   - **Pattern**: `const safeText = String(text || '')`
+
+#### Technical Details:
+
+**Before (Unsafe)**:
+```javascript
+export const parseCVData = (cvText, formData) => {
+  const lines = cvText.split('\n').filter(line => line.trim()); // ❌ Crashes on null
+  // ...
+  contact: {
+    email: extractEmail(cvText), // ❌ Passes potentially null value
+    phone: extractPhone(cvText), // ❌ Passes potentially null value
+  }
+};
+```
+
+**After (Safe)**:
+```javascript
+export const parseCVData = (cvText, formData) => {
+  const text = String(cvText || ''); // ✅ Safe coercion
+  const lines = text.split('\n').filter(line => line.trim()); // ✅ Safe operation
+
+  // ...
+  contact: {
+    email: extractEmail(text), // ✅ Safe string input
+    phone: extractPhone(text), // ✅ Safe string input
+  }
+};
+```
+
+#### Benefits:
+- ✅ **Crash Prevention**: No more runtime errors on null/undefined input
+- ✅ **Input Flexibility**: Accepts any input type safely
+- ✅ **Graceful Degradation**: Falls back to empty string for invalid input
+- ✅ **Maintainability**: Consistent safety pattern across all parsing functions
+- ✅ **User Experience**: Export functions never crash due to input issues
+
+#### Functions Enhanced:
+- `parseCVData()` - Main CV parsing function
+- `extractEmail()` - Email extraction with safety
+- `extractPhone()` - Phone extraction with safety
+- `extractPeriod()` - Date/period extraction with safety
+
+### ✅ Switch Case Scope Fix (Latest)
+Fixed potential variable scope leakage in the exportCV function switch statement.
+
+#### What Was Fixed:
+1. **Switch Case Block Scoping**
+   - **Problem**: The 'txt' case fell through to 'text' without proper block scoping
+   - **Issue**: Variables `blob`, `filename`, and `saveAs` could potentially leak scope
+   - **Solution**: Added explicit block `{ ... }` to both 'txt' and 'text' cases
+
+2. **Explicit Case Handling**
+   - **Before**: Fall-through pattern with single block on 'text' case
+   - **After**: Each case has its own explicit block with local variable scope
+   - **Result**: No variable scope leakage, cleaner code structure
+
+#### Technical Details:
+
+**Before (Potential Scope Issue)**:
+```javascript
+case 'txt':
+case 'text': {
+  // Variables declared here could potentially leak
+  const blob = new Blob([cvText], { type: 'text/plain' });
+  const filename = `${cvData.name.replace(/\s+/g, '_')}_CV.txt`;
+  // ...
+}
+```
+
+**After (Proper Block Scoping)**:
+```javascript
+case 'txt': {
+  // Variables properly scoped to this block
+  const blob = new Blob([cvText], { type: 'text/plain' });
+  const filename = `${cvData.name.replace(/\s+/g, '_')}_CV.txt`;
+  // ...
+}
+case 'text': {
+  // Variables properly scoped to this block
+  const blob = new Blob([cvText], { type: 'text/plain' });
+  const filename = `${cvData.name.replace(/\s+/g, '_')}_CV.txt`;
+  // ...
+}
+```
+
+#### Benefits:
+- ✅ **Scope Safety**: No variable leakage between switch cases
+- ✅ **Code Clarity**: Each case is self-contained and explicit
+- ✅ **Maintainability**: Easier to modify individual cases without affecting others
+- ✅ **Best Practices**: Follows modern JavaScript switch statement patterns
+- ✅ **Build Success**: Maintains successful build process
+
+### ✅ Template FontOptions Property Fix (Latest)
+Fixed missing fontOptions property in CV templates that was causing broken previews.
+
+#### What Was Fixed:
+1. **Missing fontOptions Property**
+   - **Problem**: Templates lacked `fontOptions` property that components were accessing
+   - **Issue**: `template.fontOptions?.[customFont]` was resolving to `undefined`
+   - **Result**: Broken previews and font customization not working
+
+2. **Template Structure Enhancement**
+   - **Before**: Templates only had `defaultFont` property
+   - **After**: Added `fontOptions: fontOptions` to all template objects
+   - **Result**: Components can now access `template.fontOptions[customFont]` successfully
+
+3. **All Templates Updated**
+   - **Modern Template**: Added `fontOptions: fontOptions`
+   - **Classic Template**: Added `fontOptions: fontOptions`
+   - **Creative Template**: Added `fontOptions: fontOptions`
+   - **ATS Template**: Added `fontOptions: fontOptions`
+
+#### Technical Details:
+
+**Before (Broken)**:
+```javascript
+export const cvTemplates = {
+  modern: {
+    id: 'modern',
+    name: 'Modern Professional',
+    defaultFont: fontOptions.modern,
+    // ❌ Missing fontOptions property
+    // template.fontOptions?.[customFont] → undefined
+  }
+};
+```
+
+**After (Fixed)**:
+```javascript
+export const cvTemplates = {
+  modern: {
+    id: 'modern',
+    name: 'Modern Professional',
+    defaultFont: fontOptions.modern,
+    fontOptions: fontOptions, // ✅ Added fontOptions property
+    // template.fontOptions?.[customFont] → fontOptions[customFont]
+  }
+};
+```
+
+#### Benefits:
+- ✅ **Preview Functionality**: Font customization now works correctly
+- ✅ **Component Compatibility**: `template.fontOptions?.[customFont]` resolves properly
+- ✅ **User Experience**: Users can see font changes in real-time preview
+- ✅ **Code Consistency**: All templates now have the same structure
+- ✅ **Build Success**: All changes maintain successful build process
+
+#### Components Fixed:
+- **CVPreview**: Font customization now displays correctly
+- **ExportPanel**: Font selection works without errors
+- **InlineExportPanel**: Font options resolve properly
+- **Any component** accessing `template.fontOptions[customFont]`
+
 ### ✅ Enhanced Drag & Drop File Upload
 The app now includes a professional drag-and-drop file upload system with the following features:
 
@@ -352,18 +664,18 @@ Comprehensive CV export system with professional templates, multiple formats, an
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
-  
+
   .line-clamp-3 {
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
-  
+
   .flex-shrink-0 {
     flex-shrink: 0;
   }
-  
+
   .min-w-0 {
     min-width: 0;
   }

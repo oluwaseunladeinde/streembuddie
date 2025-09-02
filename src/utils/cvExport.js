@@ -1,18 +1,22 @@
 /**
  * CV Export Utilities
  * Handles PDF, Word, and HTML export functionality
+ * Uses dynamic imports to avoid SSR/build issues
  */
 
-import jsPDF from 'jspdf';
-import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, BorderStyle } from 'docx';
-import { saveAs } from 'file-saver';
-import { templateUtils, generateTemplateCSS } from './cvTemplates';
+import { generateTemplateCSS } from './cvTemplates';
+
+// Browser check utility
+const isBrowser = () => typeof window !== 'undefined' && typeof document !== 'undefined';
 
 /**
  * Parse CV text into structured data
  */
 export const parseCVData = (cvText, formData) => {
-  const lines = cvText.split('\n').filter(line => line.trim());
+  // Coerce cvText to string to prevent crashes on null/undefined
+  const text = String(cvText || '');
+
+  const lines = text.split('\n').filter(line => line.trim());
   const sections = {};
   let currentSection = null;
   let currentContent = [];
@@ -22,14 +26,14 @@ export const parseCVData = (cvText, formData) => {
 
   lines.forEach(line => {
     const trimmedLine = line.trim();
-    
+
     // Check if this is a section header
     if (trimmedLine.match(/^(EXPERIENCE|EDUCATION|SKILLS|SUMMARY|PROFESSIONAL SUMMARY)$/i)) {
       // Save previous section
       if (currentSection) {
         sections[currentSection] = currentContent.join('\n');
       }
-      
+
       currentSection = trimmedLine.toUpperCase();
       currentContent = [];
     } else if (currentSection) {
@@ -45,8 +49,8 @@ export const parseCVData = (cvText, formData) => {
   return {
     name,
     contact: {
-      email: extractEmail(cvText),
-      phone: extractPhone(cvText),
+      email: extractEmail(text),
+      phone: extractPhone(text),
       location: formData.location || ''
     },
     summary: sections['PROFESSIONAL SUMMARY'] || sections['SUMMARY'] || '',
@@ -61,8 +65,10 @@ export const parseCVData = (cvText, formData) => {
  * Extract email from CV text
  */
 const extractEmail = (text) => {
+  // Ensure text is a string to prevent crashes
+  const safeText = String(text || '');
   const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
-  const match = text.match(emailRegex);
+  const match = safeText.match(emailRegex);
   return match ? match[0] : '';
 };
 
@@ -70,8 +76,10 @@ const extractEmail = (text) => {
  * Extract phone from CV text
  */
 const extractPhone = (text) => {
+  // Ensure text is a string to prevent crashes
+  const safeText = String(text || '');
   const phoneRegex = /(\+\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/g;
-  const match = text.match(phoneRegex);
+  const match = safeText.match(phoneRegex);
   return match ? match[0] : '';
 };
 
@@ -80,21 +88,21 @@ const extractPhone = (text) => {
  */
 const parseExperience = (experienceText) => {
   if (!experienceText) return [];
-  
+
   const experiences = [];
   const lines = experienceText.split('\n').filter(line => line.trim());
   let currentJob = null;
 
   lines.forEach(line => {
     const trimmed = line.trim();
-    
+
     // Check if this looks like a job title line
     if (trimmed && !trimmed.startsWith('-') && !trimmed.startsWith('•')) {
       // Save previous job
       if (currentJob) {
         experiences.push(currentJob);
       }
-      
+
       // Parse job title and company
       const parts = trimmed.split(' at ');
       currentJob = {
@@ -122,10 +130,10 @@ const parseExperience = (experienceText) => {
  */
 const parseEducation = (educationText) => {
   if (!educationText) return [];
-  
+
   const education = [];
   const lines = educationText.split('\n').filter(line => line.trim());
-  
+
   lines.forEach(line => {
     const trimmed = line.trim();
     if (trimmed && !trimmed.startsWith('-') && !trimmed.startsWith('•')) {
@@ -145,7 +153,7 @@ const parseEducation = (educationText) => {
  */
 const parseSkills = (skillsText) => {
   if (!skillsText) return [];
-  
+
   return skillsText
     .split(/[,\n]/)
     .map(skill => skill.trim())
@@ -156,8 +164,10 @@ const parseSkills = (skillsText) => {
  * Extract period/dates from text
  */
 const extractPeriod = (text) => {
+  // Ensure text is a string to prevent crashes
+  const safeText = String(text || '');
   const periodRegex = /\(([^)]+)\)/;
-  const match = text.match(periodRegex);
+  const match = safeText.match(periodRegex);
   return match ? match[1] : '';
 };
 
@@ -166,6 +176,14 @@ const extractPeriod = (text) => {
  */
 export const exportToPDF = async (cvData, template, customOptions = {}) => {
   try {
+    // Check if we're in a browser environment
+    if (!isBrowser()) {
+      throw new Error('PDF export is only available in browser environment');
+    }
+
+    // Dynamic import of jsPDF
+    const { default: jsPDF } = await import('jspdf');
+
     const doc = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
@@ -179,17 +197,17 @@ export const exportToPDF = async (cvData, template, customOptions = {}) => {
 
     // Apply template colors
     const colors = { ...template.defaultColors, ...customOptions.colors };
-    
+
     // Helper function to add text with word wrap
     const addText = (text, fontSize, isBold = false, color = colors.text) => {
       doc.setFontSize(fontSize);
       doc.setFont('helvetica', isBold ? 'bold' : 'normal');
       doc.setTextColor(color);
-      
+
       const lines = doc.splitTextToSize(text, pageWidth - 2 * margin);
       doc.text(lines, margin, yPosition);
       yPosition += (lines.length * fontSize * 0.4) + 5;
-      
+
       return yPosition;
     };
 
@@ -207,7 +225,7 @@ export const exportToPDF = async (cvData, template, customOptions = {}) => {
         cvData.contact.phone,
         cvData.contact.location
       ].filter(Boolean).join(' | ');
-      
+
       doc.setFontSize(11);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(colors.secondary);
@@ -231,21 +249,21 @@ export const exportToPDF = async (cvData, template, customOptions = {}) => {
     // Add experience
     if (cvData.experience.length > 0) {
       addText('PROFESSIONAL EXPERIENCE', 14, true, colors.primary);
-      
+
       cvData.experience.forEach(job => {
         // Job title and company
         addText(`${job.title} - ${job.company}`, 12, true, colors.accent);
         if (job.period) {
           addText(job.period, 10, false, colors.secondary);
         }
-        
+
         // Responsibilities
         job.responsibilities.forEach(resp => {
           addText(`• ${resp}`, 10, false, colors.text);
         });
-        
+
         yPosition += 5;
-        
+
         // Check if we need a new page
         if (yPosition > pageHeight - 30) {
           doc.addPage();
@@ -257,11 +275,11 @@ export const exportToPDF = async (cvData, template, customOptions = {}) => {
     // Add education
     if (cvData.education.length > 0) {
       addText('EDUCATION', 14, true, colors.primary);
-      
+
       cvData.education.forEach(edu => {
         addText(edu.degree, 11, false, colors.text);
       });
-      
+
       yPosition += 5;
     }
 
@@ -274,7 +292,7 @@ export const exportToPDF = async (cvData, template, customOptions = {}) => {
     // Save the PDF
     const filename = `${cvData.name.replace(/\s+/g, '_')}_CV_${template.name.replace(/\s+/g, '_')}.pdf`;
     doc.save(filename);
-    
+
     return { success: true, filename };
   } catch (error) {
     console.error('PDF export error:', error);
@@ -287,8 +305,16 @@ export const exportToPDF = async (cvData, template, customOptions = {}) => {
  */
 export const exportToWord = async (cvData, template, customOptions = {}) => {
   try {
+    // Check if we're in a browser environment
+    if (!isBrowser()) {
+      throw new Error('Word export is only available in browser environment');
+    }
+
+    // Dynamic import of docx components
+    const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, BorderStyle } = await import('docx');
+
     const colors = { ...template.defaultColors, ...customOptions.colors };
-    
+
     // Create document sections
     const children = [];
 
@@ -315,7 +341,7 @@ export const exportToWord = async (cvData, template, customOptions = {}) => {
         cvData.contact.phone,
         cvData.contact.location
       ].filter(Boolean).join(' | ');
-      
+
       children.push(
         new Paragraph({
           children: [
@@ -347,7 +373,7 @@ export const exportToWord = async (cvData, template, customOptions = {}) => {
           spacing: { before: 200, after: 100 }
         })
       );
-      
+
       children.push(
         new Paragraph({
           children: [
@@ -502,8 +528,11 @@ export const exportToWord = async (cvData, template, customOptions = {}) => {
     // Generate and save
     const blob = await Packer.toBlob(doc);
     const filename = `${cvData.name.replace(/\s+/g, '_')}_CV_${template.name.replace(/\s+/g, '_')}.docx`;
+
+    // Dynamic import of file-saver
+    const { saveAs } = await import('file-saver');
     saveAs(blob, filename);
-    
+
     return { success: true, filename };
   } catch (error) {
     console.error('Word export error:', error);
@@ -516,9 +545,8 @@ export const exportToWord = async (cvData, template, customOptions = {}) => {
  */
 export const exportToHTML = async (cvData, template, customOptions = {}) => {
   try {
-    const colors = { ...template.defaultColors, ...customOptions.colors };
     const css = generateTemplateCSS(template, customOptions.colors, customOptions.font);
-    
+
     const html = `
 <!DOCTYPE html>
 <html lang="en">
@@ -586,8 +614,8 @@ export const exportToHTML = async (cvData, template, customOptions = {}) => {
         <h1>${cvData.name}</h1>
         <div class="contact-info">
             ${[cvData.contact.email, cvData.contact.phone, cvData.contact.location]
-              .filter(Boolean)
-              .join(' | ')}
+        .filter(Boolean)
+        .join(' | ')}
         </div>
     </div>
 
@@ -605,9 +633,9 @@ export const exportToHTML = async (cvData, template, customOptions = {}) => {
             <div class="job" style="margin-bottom: 1.5rem;">
                 <div class="job-title">${job.title} - ${job.company}</div>
                 ${job.period ? `<div class="job-period">${job.period}</div>` : ''}
-                ${job.responsibilities.map(resp => 
-                  `<div class="responsibility">• ${resp}</div>`
-                ).join('')}
+                ${job.responsibilities.map(resp =>
+          `<div class="responsibility">• ${resp}</div>`
+        ).join('')}
             </div>
         `).join('')}
     </div>
@@ -626,9 +654,9 @@ export const exportToHTML = async (cvData, template, customOptions = {}) => {
     <div class="cv-section">
         <h2 class="section-title">Skills</h2>
         <div class="skills-list">
-            ${cvData.skills.map(skill => 
-              `<span class="skill-tag">${skill}</span>`
-            ).join('')}
+            ${cvData.skills.map(skill =>
+          `<span class="skill-tag">${skill}</span>`
+        ).join('')}
         </div>
     </div>
     ` : ''}
@@ -638,8 +666,11 @@ export const exportToHTML = async (cvData, template, customOptions = {}) => {
     // Create and download HTML file
     const blob = new Blob([html], { type: 'text/html' });
     const filename = `${cvData.name.replace(/\s+/g, '_')}_CV_${template.name.replace(/\s+/g, '_')}.html`;
+
+    // Dynamic import of file-saver
+    const { saveAs } = await import('file-saver');
     saveAs(blob, filename);
-    
+
     return { success: true, filename };
   } catch (error) {
     console.error('HTML export error:', error);
@@ -652,7 +683,7 @@ export const exportToHTML = async (cvData, template, customOptions = {}) => {
  */
 export const exportCV = async (cvText, formData, template, format, customOptions = {}) => {
   const cvData = parseCVData(cvText, formData);
-  
+
   switch (format.toLowerCase()) {
     case 'pdf':
       return await exportToPDF(cvData, template, customOptions);
@@ -661,13 +692,34 @@ export const exportCV = async (cvText, formData, template, format, customOptions
       return await exportToWord(cvData, template, customOptions);
     case 'html':
       return await exportToHTML(cvData, template, customOptions);
-    case 'txt':
-    case 'text':
+    case 'txt': {
       // Simple text download (existing functionality)
+      if (!isBrowser()) {
+        throw new Error('Text export is only available in browser environment');
+      }
+
       const blob = new Blob([cvText], { type: 'text/plain' });
       const filename = `${cvData.name.replace(/\s+/g, '_')}_CV.txt`;
+
+      // Dynamic import of file-saver
+      const { saveAs } = await import('file-saver');
       saveAs(blob, filename);
       return { success: true, filename };
+    }
+    case 'text': {
+      // Simple text download (existing functionality)
+      if (!isBrowser()) {
+        throw new Error('Text export is only available in browser environment');
+      }
+
+      const blob = new Blob([cvText], { type: 'text/plain' });
+      const filename = `${cvData.name.replace(/\s+/g, '_')}_CV.txt`;
+
+      // Dynamic import of file-saver
+      const { saveAs } = await import('file-saver');
+      saveAs(blob, filename);
+      return { success: true, filename };
+    }
     default:
       throw new Error(`Unsupported export format: ${format}`);
   }

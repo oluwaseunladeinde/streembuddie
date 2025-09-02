@@ -10,6 +10,7 @@ StreemBuddie is a modern web application that helps job seekers optimize their C
 - **📊 CV Scoring & Analysis**: Real-time scoring with skill matching and improvement recommendations  
 - **📄 Cover Letter Generation**: Automatically generates personalized cover letters
 - **📁 Drag & Drop Upload**: Professional file upload with validation and visual feedback
+- **📝 CV Builder**: Form-based CV creation for users without an existing CV
 - **💾 Auto-Save & Session Management**: Never lose your work with automatic saving and session restoration
 - **📝 Application History**: Quick access to previous applications for efficiency
 - **🎨 Beautiful UI**: Modern, responsive design with smooth animations
@@ -62,7 +63,7 @@ npm run lint     # Run ESLint
 ## 📋 How to Use
 
 1. **Enter Personal Info**: Start by providing your full name
-2. **Upload CV**: Drag and drop your CV (PDF, DOC, DOCX) or click to browse
+2. **CV Creation**: Either upload your existing CV (PDF, DOC, DOCX) or build a new one using the CV builder
 3. **Job Details**: Enter the company name, role, and job description
 4. **Get Results**: Download your optimized CV and personalized cover letter
 
@@ -95,6 +96,16 @@ npm run lint     # Run ESLint
 6. **Export**: Download in your chosen format
 
 ## 🎯 Recent Updates (August 2025)
+
+### CV Builder Feature 🆕
+- **Form-based CV creation** for users without an existing CV
+- **Section-based structure** with personal info, experience, education, and skills
+- **Dynamic form fields** to add/remove experiences, responsibilities, education, and skills
+- **Real-time CV generation** as you fill out the form
+- **Collapsible sections** for better organization and focus
+- **Tab interface** to easily switch between upload and build modes
+- **Pre-filled data** from personal information step
+- **Mobile responsive design** that works on all devices
 
 ### Enhanced Drag & Drop File Upload
 - **Professional drag-and-drop interface** with visual feedback
@@ -150,7 +161,8 @@ src/
 │   ├── ExportPanel.jsx      # Full-featured export interface
 │   ├── InlineExportPanel.jsx # Compact inline export panel
 │   ├── CVPreview.jsx        # Live template preview
-│   └── ExportDemo.jsx       # Export features showcase
+│   ├── ExportDemo.jsx       # Export features showcase
+│   └── CVBuilder.jsx        # Form-based CV creation component
 ├── utils/
 │   ├── cvAnalysis.js        # CV analysis utilities
 │   ├── localStorage.js      # Local storage management
@@ -164,6 +176,7 @@ src/
 ### Key Components
 - **Step-based Wizard**: Guides users through the optimization process
 - **Drag & Drop Upload**: Professional file upload with validation
+- **CV Builder**: Form-based CV creation with dynamic sections
 - **CV Analysis Dashboard**: Real-time scoring with detailed insights
 - **CV Optimization Engine**: AI-powered content enhancement
 - **Cover Letter Generator**: Personalized cover letter creation
