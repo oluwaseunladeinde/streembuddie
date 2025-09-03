@@ -3,6 +3,17 @@
  * Provides scoring, keyword matching, and gap analysis functionality
  */
 
+// Normalize keywords for matching (preserve ., -, +, #, /)
+const normalizeKeyword = (s = '') =>
+    String(s).toLowerCase().replace(/[^a-z0-9.+/#-]/g, '').replace(/react\.?js/, 'react').replace(/node\.?js/, 'nodejs').replace(/ci[-/ ]?cd/, 'ci/cd');
+
+const SYNONYMS = {
+  'React': ['React.js', 'ReactJS'],
+  'Node.js': ['Node', 'NodeJS', 'Nodejs'],
+  'C#': ['CSharp', 'C-sharp', 'C sharp'],
+  'CI/CD': ['CI-CD', 'CI CD']
+};
+
 // Common technical skills and keywords database
 export const SKILL_CATEGORIES = {
   'Frontend': ['React', 'Vue', 'Angular', 'JavaScript', 'TypeScript', 'HTML', 'CSS', 'SCSS', 'Tailwind', 'Bootstrap'],
@@ -47,16 +58,14 @@ export const extractKeywords = (text) => {
  */
 export const findSkillMatches = (cvKeywords, jobKeywords) => {
   const matches = [];
-  const cvLower = cvKeywords.map(k => k.toLowerCase());
+  //const cvLower = cvKeywords.map(k => k.toLowerCase());
+  const cvSet = new Set(cvKeywords.map(k => normalizeKeyword(k)));
+  const jobSet = new Set(jobKeywords.map(k => normalizeKeyword(k)));
 
   ALL_SKILLS.forEach(skill => {
-    const skillLower = skill.toLowerCase();
-    const hasInCV = cvLower.some(cvWord =>
-      cvWord.includes(skillLower) || skillLower.includes(cvWord)
-    );
-    const hasInJob = jobKeywords.some(jobWord =>
-      jobWord.toLowerCase().includes(skillLower) || skillLower.includes(jobWord.toLowerCase())
-    );
+    const variants = [skill, ...(SYNONYMS[skill] || [])].map(normalizeKeyword);
+    const hasInCV = variants.some(v => cvSet.has(v));
+    const hasInJob = variants.some(v => jobSet.has(v));
 
     if (hasInCV && hasInJob) {
       matches.push({
@@ -76,16 +85,13 @@ export const findSkillMatches = (cvKeywords, jobKeywords) => {
  */
 export const findMissingSkills = (cvKeywords, jobKeywords) => {
   const missing = [];
-  const cvLower = cvKeywords.map(k => k.toLowerCase());
+  const cvSet = new Set(cvKeywords.map(k => normalizeKeyword(k)));
+  const jobSet = new Set(jobKeywords.map(k => normalizeKeyword(k)));
 
   ALL_SKILLS.forEach(skill => {
-    const skillLower = skill.toLowerCase();
-    const hasInCV = cvLower.some(cvWord =>
-      cvWord.includes(skillLower) || skillLower.includes(cvWord)
-    );
-    const hasInJob = jobKeywords.some(jobWord =>
-      jobWord.toLowerCase().includes(skillLower) || skillLower.includes(jobWord.toLowerCase())
-    );
+    const variants = [skill, ...(SYNONYMS[skill] || [])].map(normalizeKeyword);
+    const hasInCV = variants.some(v => cvSet.has(v));
+    const hasInJob = variants.some(v => jobSet.has(v));
 
     if (!hasInCV && hasInJob) {
       missing.push({
@@ -106,10 +112,9 @@ export const findMissingSkills = (cvKeywords, jobKeywords) => {
  * Calculate how important a skill is based on job description mentions
  */
 const calculateSkillPriority = (skill, jobKeywords) => {
-  const skillLower = skill.toLowerCase();
-  return jobKeywords.filter(keyword =>
-    keyword.toLowerCase().includes(skillLower)
-  ).length;
+  const variants = [skill, ...(SYNONYMS[skill] || [])].map(normalizeKeyword);
+  const jobNorm = jobKeywords.map(k => normalizeKeyword(k));
+  return jobNorm.filter(k => variants.includes(k)).length;
 };
 
 /**
@@ -169,8 +174,8 @@ export const generateAnalysisReport = (cvText, jobDescription) => {
   const score = calculateCVScore(cvText, jobDescription);
 
   // Group matches by category
-  const matchesByCategory = SKILL_CATEGORIES;
-  Object.keys(matchesByCategory).forEach(category => {
+  const matchesByCategory = {};
+  Object.keys(SKILL_CATEGORIES).forEach(category => {
     matchesByCategory[category] = skillMatches.filter(m => m.category === category);
   });
 
