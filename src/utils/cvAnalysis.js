@@ -34,9 +34,9 @@ export const extractKeywords = (text) => {
   if (!text) return [];
 
   const words = text.toLowerCase()
-    .replace(/[^\w\s.-]/g, ' ') // Remove special chars except dots and hyphens
+      .replace(/[^\w\s.+/#-]/g, ' ') // Remove special chars except ., -, +, #, /
     .split(/\s+/)
-    .filter(word => word.length > 2); // Filter out very short words
+      .filter(word => word.length >= 2); // Keep 2-char skills like "go", "c#" // Filter out very short words
 
   const phrases = [];
 

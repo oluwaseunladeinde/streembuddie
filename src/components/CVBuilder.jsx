@@ -68,7 +68,7 @@ const CVBuilder = ({ onCVGenerated, initialData = {} }) => {
       }
       
       // Add education section
-      iif (education.some(edu => edu.institution && edu.degree)) {
+      if (education.some(edu => edu.institution && edu.degree)) {
         cvText += 'EDUCATION\n';
         education.forEach(edu => {
           if (edu.degree && edu.institution) {
