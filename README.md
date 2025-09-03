@@ -6,7 +6,7 @@ StreemBuddie is a modern web application that helps job seekers optimize their C
 
 ## ✨ Features
 
-- **🔐 User Authentication**: Secure login and registration system to protect your data
+- **🔐 User Authentication**: Client-side sign-in and session management (no backend; data stays in your browser)
 - **🎯 Smart CV Optimization**: AI-powered analysis that tailors your CV to specific job descriptions
 - **📊 CV Scoring & Analysis**: Real-time scoring with skill matching and improvement recommendations  
 - **📄 Cover Letter Generation**: Automatically generates personalized cover letters

@@ -85,7 +85,7 @@ const StreemBuddie = () => {
 ```
 
 #### Benefits:
-- ✅ **Data Security**: User data is protected behind authentication
+- ✅ **Data Security**: User data is protected behind authentication. The current auth stores plaintext credentials in localStorage. For demo purposes only. 
 - ✅ **Personalized Experience**: User-specific data and settings
 - ✅ **User Management**: Complete registration and login system
 - ✅ **Persistent Sessions**: Users stay logged in between visits

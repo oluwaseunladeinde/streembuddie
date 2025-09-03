@@ -10,16 +10,15 @@ import { generateTemplateCSS } from './cvTemplates';
 const isBrowser = () => typeof window !== 'undefined' && typeof document !== 'undefined';
 
 // Safe filename helper: keep [A-Za-z0-9_.-], collapse others to '_', trim length
-const sanitizeFilename = (s, fallback = 'file') => {
-    const base = String(s || fallback)
-          // normalize accents (best-effort; ignored where not supported)
-          .normalize ? s.normalize('NFKD') : String(s || fallback);
-    const cleaned = String(base)
+export const sanitizeFilename = (s, fallback = 'file') => {
+  const base = String(s ?? fallback);
+  const normalized = base.normalize ? base.normalize('NFKD') : base;
+  const cleaned = normalized
           .replace(/[^\w.-]+/g, '_')   // keep word chars, dot, dash
-          .replace(/^_+|_+$/g, '')     // trim leading/trailing underscores
-          .slice(0, 120) || fallback;  // avoid super-long names/empties
-    return cleaned;
-};
+      .replace(/^_+|_+$/g, '')     // trim leading/trailing underscores
+      .slice(0, 120);
+    return cleaned || fallback;    // avoid empties
+  };
 
 /**
  * Parse CV text into structured data
@@ -34,7 +33,7 @@ export const parseCVData = (cvText, formData) => {
   let currentContent = [];
 
   // Extract name (first line that's not empty)
-  const name = formData.fullName || lines[0]?.trim() || 'Your Name';
+  const name = formData?.fullName?.trim() || lines[0]?.trim() || 'Your Name';
 
   lines.forEach(line => {
     const trimmedLine = line.trim();
@@ -63,7 +62,7 @@ export const parseCVData = (cvText, formData) => {
     contact: {
       email: extractEmail(text),
       phone: extractPhone(text),
-      location: formData.location || ''
+      location: formData?.location || ''
     },
     summary: sections['PROFESSIONAL SUMMARY'] || sections['SUMMARY'] || '',
     experience: parseExperience(sections['EXPERIENCE'] || ''),
@@ -716,7 +715,7 @@ export const exportCV = async (cvText, formData, template, format, customOptions
         throw new Error('Text export is only available in browser environment');
       }
 
-      const blob = new Blob([cvText], { type: 'text/plain' });
+      const blob = new Blob([cvText], { type: 'text/plain;charset=utf-8' });
       const filename = `${sanitizeFilename(cvData.name, 'Your_Name')}_CV.txt`;
 
       // Dynamic import of file-saver
@@ -730,8 +729,8 @@ export const exportCV = async (cvText, formData, template, format, customOptions
         throw new Error('Text export is only available in browser environment');
       }
 
-      const blob = new Blob([cvText], { type: 'text/plain' });
-      const filename = `${sanitizeFilename(cvData.name, 'Your_Name')}_CV.txt`;
+      const blob = new Blob([cvText], { type: 'text/plain;charset=utf-8' });
+      const filename = `${cvData.name.replace(/\s+/g, '_')}_CV.txt`;
 
       // Dynamic import of file-saver
       const { saveAs } = await import('file-saver');
