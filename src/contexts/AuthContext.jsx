@@ -15,6 +15,13 @@ export const useAuth = () => {
   return context;
 };
 
+const derivePasswordHash = async(password, salt) => {
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' }, key, 256);
+  return btoa(String.fromCharCode(...new Uint8Array(bits)));
+}
+
 // Authentication provider component
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
@@ -43,20 +50,22 @@ export const AuthProvider = ({ children }) => {
       
       // Check if user already exists
       const storedUsers = JSON.parse(localStorage.getItem('streembuddie-users') || '[]');
-      const existingUser = storedUsers.find(user => user.email === email);
+      const emailNorm = email.trim().toLowerCase();
+      const existingUser = storedUsers.find(user => (user.email || '').toLowerCase() === emailNorm);
       
       if (existingUser) {
         throw new Error('User with this email already exists');
       }
       
       // Create new user
+      const salt = crypto.getRandomValues(new Uint8Array(16));
+      const passwordHash = await derivePasswordHash(password, salt);
       const newUser = {
         id: Date.now().toString(),
         email,
         name,
-        // In a real app, you would hash the password
-        // This is just for demonstration purposes
-        password,
+        passwordHash,
+        salt: Array.from(salt),
         createdAt: new Date().toISOString()
       };
       
@@ -90,8 +99,16 @@ export const AuthProvider = ({ children }) => {
       
       // Get users from "database" (localStorage)
       const storedUsers = JSON.parse(localStorage.getItem('streembuddie-users') || '[]');
-      const user = storedUsers.find(user => user.email === email && user.password === password);
-      
+      const emailNorm = email.trim().toLowerCase();
+      const user = storedUsers.find(user => (user.email || '').toLowerCase() === emailNorm);
+      if (user) {
+        const salt = new Uint8Array(user.salt);
+        const hash = await derivePasswordHash(password, salt);
+        if (hash !== user.passwordHash) {
+          throw new Error('Invalid email or password');
+        }
+      }
+
       if (!user) {
         throw new Error('Invalid email or password');
       }
