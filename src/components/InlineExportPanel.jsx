@@ -80,7 +80,7 @@ const InlineExportPanel = ({ cvText, formData, optimizedCV, coverLetter, showOri
         setExportStatus({ type: 'info', message: 'Exporting cover letter...' });
 
         try {
-            const blob = new Blob([coverLetter], { type: 'text/plain' });
+            const blob = new Blob([coverLetter], { type: 'text/plain;charset=utf-8' })
 
             const safeName = String(formData?.fullName || 'Your Name').replace(/[^\w.-]+/g, '_').replace(/\s+/g, '_');
             const safeCompany = String(formData?.company || 'Company').replace(/[^\w.-]+/g, '_').replace(/\s+/g, '_');

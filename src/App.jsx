@@ -3,6 +3,7 @@ import { Upload, FileText, Briefcase, User, Download, Sparkles, Eye, EyeOff, Che
 import { useDragAndDrop } from './hooks/useDragAndDrop';
 import { useCVAnalysis } from './hooks/useCVAnalysis';
 import { useSessionManager } from './hooks/useSessionManager';
+import { useAuth } from './contexts/AuthContext';
 import { ScoreDisplay, QuickStats, SkillCategoryBreakdown, RecommendationCard } from './components/ScoringComponents';
 import ApplicationHistory from './components/ApplicationHistory';
 import DataManagement from './components/DataManagement';
@@ -11,8 +12,10 @@ import InlineExportPanel from './components/InlineExportPanel';
 import CVPreview from './components/CVPreview';
 import CVBuilder from './components/CVBuilder';
 import Dashboard from './components/Dashboard';
+import ProtectedRoute from './components/ProtectedRoute';
+import UserProfile from './components/UserProfile';
 
-const StreemBuddie = () => {
+const StreemBuddieApp = () => {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     fullName: '',
@@ -342,9 +345,10 @@ ${name}`;
                 <Settings className="h-4 w-4" />
                 <span>Data & Privacy</span>
               </button>
-              <div className="text-sm text-gray-500">
+              <div className="text-sm text-gray-500 mr-4">
                 AI-Powered CV Optimization
               </div>
+              <UserProfile />
             </div>
           </div>
         </div>
@@ -991,6 +995,15 @@ ${name}`;
         </div>
       )}
     </div>
+  );
+};
+
+// Wrap the main application with the ProtectedRoute component
+const StreemBuddie = () => {
+  return (
+    <ProtectedRoute>
+      <StreemBuddieApp />
+    </ProtectedRoute>
   );
 };
 

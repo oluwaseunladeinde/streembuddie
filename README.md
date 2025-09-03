@@ -6,6 +6,7 @@ StreemBuddie is a modern web application that helps job seekers optimize their C
 
 ## ✨ Features
 
+- **🔐 User Authentication**: Secure login and registration system to protect your data
 - **🎯 Smart CV Optimization**: AI-powered analysis that tailors your CV to specific job descriptions
 - **📊 CV Scoring & Analysis**: Real-time scoring with skill matching and improvement recommendations  
 - **📄 Cover Letter Generation**: Automatically generates personalized cover letters
@@ -62,10 +63,12 @@ npm run lint     # Run ESLint
 
 ## 📋 How to Use
 
-1. **Enter Personal Info**: Start by providing your full name
-2. **CV Creation**: Either upload your existing CV (PDF, DOC, DOCX) or build a new one using the CV builder
-3. **Job Details**: Enter the company name, role, and job description
-4. **Get Results**: Download your optimized CV and personalized cover letter
+1. **Create an Account**: Sign up with your email and password to access the application
+2. **Login**: Sign in with your credentials to access your personalized dashboard
+3. **Enter Personal Info**: Start by providing your full name
+4. **CV Creation**: Either upload your existing CV (PDF, DOC, DOCX) or build a new one using the CV builder
+5. **Job Details**: Enter the company name, role, and job description
+6. **Get Results**: Download your optimized CV and personalized cover letter
 
 ## 🎨 Export & Templates
 
@@ -96,6 +99,14 @@ npm run lint     # Run ESLint
 6. **Export**: Download in your chosen format
 
 ## 🎯 Recent Updates (August 2025)
+
+### User Authentication System 🆕
+- **Secure login and registration** for protecting user data
+- **User profile management** with easy account access
+- **Protected application routes** requiring authentication
+- **Persistent sessions** for seamless user experience
+- **Responsive authentication UI** that works on all devices
+- **User-specific data** for personalized experience
 
 ### CV Builder Feature 🆕
 - **Form-based CV creation** for users without an existing CV
@@ -154,6 +165,8 @@ src/
 │   ├── useDragAndDrop.js    # Reusable drag-and-drop logic
 │   ├── useCVAnalysis.js     # CV scoring and analysis
 │   └── useSessionManager.js # Session persistence and history
+├── contexts/
+│   └── AuthContext.jsx      # Authentication context and provider
 ├── components/
 │   ├── ScoringComponents.jsx # CV analysis dashboard components
 │   ├── ApplicationHistory.jsx # Previous applications display
@@ -162,7 +175,10 @@ src/
 │   ├── InlineExportPanel.jsx # Compact inline export panel
 │   ├── CVPreview.jsx        # Live template preview
 │   ├── ExportDemo.jsx       # Export features showcase
-│   └── CVBuilder.jsx        # Form-based CV creation component
+│   ├── CVBuilder.jsx        # Form-based CV creation component
+│   ├── Login.jsx            # Authentication login/register component
+│   ├── UserProfile.jsx      # User profile display component
+│   └── ProtectedRoute.jsx   # Route protection component
 ├── utils/
 │   ├── cvAnalysis.js        # CV analysis utilities
 │   ├── localStorage.js      # Local storage management
@@ -174,6 +190,9 @@ src/
 ```
 
 ### Key Components
+- **Authentication System**: User registration, login, and session management
+- **Protected Routes**: Secure access to application features
+- **User Profile**: User information display and account management
 - **Step-based Wizard**: Guides users through the optimization process
 - **Drag & Drop Upload**: Professional file upload with validation
 - **CV Builder**: Form-based CV creation with dynamic sections
