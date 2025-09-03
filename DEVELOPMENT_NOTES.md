@@ -2,6 +2,105 @@
 
 ## Recent Improvements (August 2025)
 
+### ✅ User Authentication Feature (Latest)
+Added a complete authentication system to protect user data and provide a personalized experience.
+
+#### What Was Added:
+1. **Authentication Context (`src/contexts/AuthContext.jsx`)**
+   - **Context Provider**: Central authentication state management
+   - **User Registration**: Email, password, and name-based account creation
+   - **User Login**: Secure authentication with error handling
+   - **Persistent Sessions**: Automatic session restoration on page reload
+   - **Logout Functionality**: Clean session termination
+
+2. **Authentication Components**
+   - **Login Component (`src/components/Login.jsx`)**: Combined login/registration form
+   - **User Profile Component (`src/components/UserProfile.jsx`)**: User info display with logout
+   - **Protected Route Component (`src/components/ProtectedRoute.jsx`)**: Route protection
+
+3. **Application Integration**
+   - **Route Protection**: Main application wrapped in authentication check
+   - **User Interface**: Profile display in header with dropdown menu
+   - **Seamless Experience**: Automatic redirection to login when needed
+
+#### Technical Details:
+
+**Authentication Context Implementation**:
+```javascript
+// Authentication provider with state management
+export const AuthProvider = ({ children }) => {
+  const [currentUser, setCurrentUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Load user from localStorage on initial render
+  useEffect(() => {
+    const storedUser = localStorage.getItem('streembuddie-auth');
+    if (storedUser) {
+      setCurrentUser(JSON.parse(storedUser));
+    }
+    setLoading(false);
+  }, []);
+
+  // Authentication functions (register, login, logout)
+  // ...
+
+  return (
+    <AuthContext.Provider value={{ currentUser, loading, register, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+```
+
+**Protected Route Pattern**:
+```javascript
+const ProtectedRoute = ({ children }) => {
+  const { currentUser, loading } = useAuth();
+
+  // Show loading state while checking authentication
+  if (loading) {
+    return <LoadingSpinner />;
+  }
+
+  // If not authenticated, show login screen
+  if (!currentUser) {
+    return <Login />;
+  }
+
+  // If authenticated, render the protected content
+  return children;
+};
+```
+
+**Application Integration**:
+```javascript
+// Wrap the main application with the ProtectedRoute component
+const StreemBuddie = () => {
+  return (
+    <ProtectedRoute>
+      <StreemBuddieApp />
+    </ProtectedRoute>
+  );
+};
+```
+
+#### Benefits:
+- ✅ **Data Security**: User data is protected behind authentication
+- ✅ **Personalized Experience**: User-specific data and settings
+- ✅ **User Management**: Complete registration and login system
+- ✅ **Persistent Sessions**: Users stay logged in between visits
+- ✅ **Clean Integration**: Non-intrusive addition to existing codebase
+- ✅ **Responsive Design**: Authentication UI works on all devices
+
+#### Usage Instructions:
+1. **First Visit**: Users are presented with login/registration screen
+2. **Registration**: New users can create an account with email, password, and name
+3. **Login**: Returning users can sign in with their credentials
+4. **Profile Access**: User information and logout available in header
+5. **Session Persistence**: Users remain logged in until they explicitly log out
+
+The authentication feature significantly enhances the application's security and provides a foundation for future user-specific features and data management.
+
 ### ✅ CV Builder Feature (Latest)
 Added a CV builder as an alternative to uploading a CV, providing users with a form-based interface to create their CV from scratch.
 

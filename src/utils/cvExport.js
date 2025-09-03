@@ -9,6 +9,18 @@ import { generateTemplateCSS } from './cvTemplates';
 // Browser check utility
 const isBrowser = () => typeof window !== 'undefined' && typeof document !== 'undefined';
 
+// Safe filename helper: keep [A-Za-z0-9_.-], collapse others to '_', trim length
+const sanitizeFilename = (s, fallback = 'file') => {
+    const base = String(s || fallback)
+          // normalize accents (best-effort; ignored where not supported)
+          .normalize ? s.normalize('NFKD') : String(s || fallback);
+    const cleaned = String(base)
+          .replace(/[^\w.-]+/g, '_')   // keep word chars, dot, dash
+          .replace(/^_+|_+$/g, '')     // trim leading/trailing underscores
+          .slice(0, 120) || fallback;  // avoid super-long names/empties
+    return cleaned;
+};
+
 /**
  * Parse CV text into structured data
  */
@@ -290,7 +302,7 @@ export const exportToPDF = async (cvData, template, customOptions = {}) => {
     }
 
     // Save the PDF
-    const filename = `${cvData.name.replace(/\s+/g, '_')}_CV_${template.name.replace(/\s+/g, '_')}.pdf`;
+    const filename = `${sanitizeFilename(cvData.name, 'Your_Name')}_CV_${sanitizeFilename(template.name, 'Template')}.pdf`;
     doc.save(filename);
 
     return { success: true, filename };
@@ -527,7 +539,7 @@ export const exportToWord = async (cvData, template, customOptions = {}) => {
 
     // Generate and save
     const blob = await Packer.toBlob(doc);
-    const filename = `${cvData.name.replace(/\s+/g, '_')}_CV_${template.name.replace(/\s+/g, '_')}.docx`;
+    const filename = `${sanitizeFilename(cvData.name, 'Your_Name')}_CV_${sanitizeFilename(template.name, 'Template')}.docx`;
 
     // Dynamic import of file-saver
     const { saveAs } = await import('file-saver');
@@ -671,7 +683,7 @@ export const exportToHTML = async (cvData, template, customOptions = {}) => {
 
     // Create and download HTML file
     const blob = new Blob([html], { type: 'text/html' });
-    const filename = `${cvData.name.replace(/\s+/g, '_')}_CV_${template.name.replace(/\s+/g, '_')}.html`;
+    const filename = `${sanitizeFilename(cvData.name, 'Your_Name')}_CV_${sanitizeFilename(template.name, 'Template')}.html`;
 
     // Dynamic import of file-saver
     const { saveAs } = await import('file-saver');
@@ -705,7 +717,7 @@ export const exportCV = async (cvText, formData, template, format, customOptions
       }
 
       const blob = new Blob([cvText], { type: 'text/plain' });
-      const filename = `${cvData.name.replace(/\s+/g, '_')}_CV.txt`;
+      const filename = `${sanitizeFilename(cvData.name, 'Your_Name')}_CV.txt`;
 
       // Dynamic import of file-saver
       const { saveAs } = await import('file-saver');
@@ -719,7 +731,7 @@ export const exportCV = async (cvText, formData, template, format, customOptions
       }
 
       const blob = new Blob([cvText], { type: 'text/plain' });
-      const filename = `${cvData.name.replace(/\s+/g, '_')}_CV.txt`;
+      const filename = `${sanitizeFilename(cvData.name, 'Your_Name')}_CV.txt`;
 
       // Dynamic import of file-saver
       const { saveAs } = await import('file-saver');
