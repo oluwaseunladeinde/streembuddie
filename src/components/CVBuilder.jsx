@@ -34,8 +34,11 @@ const CVBuilder = ({ onCVGenerated, initialData = {} }) => {
   // Generate CV text whenever form data changes
   useEffect(() => {
     const generateCV = () => {
-      // Skip if essential fields are empty
-      if (!personalInfo.fullName) return;
+      // Skip if essential fields are empty (and clear parent value)
+      if (!personalInfo.fullName) {
+        onCVGenerated('');
+        return;
+      }
 
       let cvText = `${personalInfo.fullName}\n`;
       if (personalInfo.title) cvText += `${personalInfo.title}\n`;
@@ -47,7 +50,7 @@ const CVBuilder = ({ onCVGenerated, initialData = {} }) => {
       if (contactInfo.length > 0) cvText += `${contactInfo.join(' | ')}\n`;
       
       // Add experience section
-      if (experiences.length > 0 && experiences[0].company) {
+      if (experiences.some(exp => exp.company && exp.position)) {
         cvText += '\nEXPERIENCE\n';
         experiences.forEach(exp => {
           if (exp.company && exp.position) {
@@ -65,7 +68,7 @@ const CVBuilder = ({ onCVGenerated, initialData = {} }) => {
       }
       
       // Add education section
-      if (education.length > 0 && education[0].institution) {
+      iif (education.some(edu => edu.institution && edu.degree)) {
         cvText += 'EDUCATION\n';
         education.forEach(edu => {
           if (edu.degree && edu.institution) {

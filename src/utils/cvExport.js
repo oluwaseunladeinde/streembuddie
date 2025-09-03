@@ -545,6 +545,11 @@ export const exportToWord = async (cvData, template, customOptions = {}) => {
  */
 export const exportToHTML = async (cvData, template, customOptions = {}) => {
   try {
+    // Check if we're in a browser environment
+    if (!isBrowser()) {
+      throw new Error('HTML export is only available in browser environment');
+    }
+
     const css = generateTemplateCSS(template, customOptions.colors, customOptions.font);
 
     const html = `
