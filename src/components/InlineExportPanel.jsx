@@ -71,7 +71,7 @@ const InlineExportPanel = ({ cvText, formData, optimizedCV, coverLetter, showOri
 
     // Export cover letter
     const handleCoverLetterExport = async () => {
-        if (!coverLetter.trim()) {
+        if (!String(coverLetter || '').trim()) {
             setExportStatus({ type: 'error', message: 'No cover letter to export' });
             return;
         }
@@ -81,7 +81,10 @@ const InlineExportPanel = ({ cvText, formData, optimizedCV, coverLetter, showOri
 
         try {
             const blob = new Blob([coverLetter], { type: 'text/plain' });
-            const filename = `${formData.fullName.replace(/\s+/g, '_')}_CoverLetter_${formData.company || 'Company'}.txt`;
+
+            const safeName = String(formData?.fullName || 'Your Name').replace(/[^\w.-]+/g, '_').replace(/\s+/g, '_');
+            const safeCompany = String(formData?.company || 'Company').replace(/[^\w.-]+/g, '_').replace(/\s+/g, '_');
+            const filename = `${safeName}_CoverLetter_${safeCompany}.txt`;
 
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');

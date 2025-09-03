@@ -551,6 +551,10 @@ export const exportToHTML = async (cvData, template, customOptions = {}) => {
     }
 
     const css = generateTemplateCSS(template, customOptions.colors, customOptions.font);
+    const esc = (s) =>
+        String(s ?? '').replace(/[&<>"'`=]/g, (ch) =>
+            ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;', '`': '&#96;', '=': '&#61;' }[ch])
+        );
 
     const html = `
 <!DOCTYPE html>
@@ -558,7 +562,7 @@ export const exportToHTML = async (cvData, template, customOptions = {}) => {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${cvData.name} - CV</title>
+    <title>${esc(cvData.name)} - CV</title>
     <style>
         ${css}
         body {
@@ -616,10 +620,11 @@ export const exportToHTML = async (cvData, template, customOptions = {}) => {
 </head>
 <body class="cv-template">
     <div class="cv-header">
-        <h1>${cvData.name}</h1>
+        <h1>${esc(cvData.name)}</h1>
         <div class="contact-info">
             ${[cvData.contact.email, cvData.contact.phone, cvData.contact.location]
         .filter(Boolean)
+        .map(esc)
         .join(' | ')}
         </div>
     </div>
@@ -627,7 +632,7 @@ export const exportToHTML = async (cvData, template, customOptions = {}) => {
     ${cvData.summary ? `
     <div class="cv-section">
         <h2 class="section-title">Professional Summary</h2>
-        <p>${cvData.summary}</p>
+        <p>${esc(cvData.summary)}</p>
     </div>
     ` : ''}
 
@@ -636,11 +641,9 @@ export const exportToHTML = async (cvData, template, customOptions = {}) => {
         <h2 class="section-title">Professional Experience</h2>
         ${cvData.experience.map(job => `
             <div class="job" style="margin-bottom: 1.5rem;">
-                <div class="job-title">${job.title} - ${job.company}</div>
-                ${job.period ? `<div class="job-period">${job.period}</div>` : ''}
-                ${job.responsibilities.map(resp =>
-          `<div class="responsibility">• ${resp}</div>`
-        ).join('')}
+                <div class="job-title">${esc(job.title)} - ${esc(job.company)}</div>
+                ${job.period ? `<div class="job-period">${esc(job.period)}</div>` : ''}
+                ${job.responsibilities.map(resp => `<div class="responsibility">• ${esc(resp)}</div>`).join('')}
             </div>
         `).join('')}
     </div>
@@ -650,7 +653,7 @@ export const exportToHTML = async (cvData, template, customOptions = {}) => {
     <div class="cv-section">
         <h2 class="section-title">Education</h2>
         ${cvData.education.map(edu => `
-            <div>${edu.degree}</div>
+            <div>${esc(edu.degree)}</div>
         `).join('')}
     </div>
     ` : ''}
@@ -659,9 +662,7 @@ export const exportToHTML = async (cvData, template, customOptions = {}) => {
     <div class="cv-section">
         <h2 class="section-title">Skills</h2>
         <div class="skills-list">
-            ${cvData.skills.map(skill =>
-          `<span class="skill-tag">${skill}</span>`
-        ).join('')}
+            ${cvData.skills.map(skill => `<span class="skill-tag">${esc(skill)}</span>`).join('')}
         </div>
     </div>
     ` : ''}
