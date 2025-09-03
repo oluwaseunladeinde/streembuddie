@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Download, Eye, Palette, Type, FileText, FileEdit, Globe, Type as TypeIcon, Check, ChevronDown, X } from 'lucide-react';
+import { Download, Eye, Palette, FileText, FileEdit, Globe, Type as TypeIcon, Check, ChevronDown, X } from 'lucide-react';
 import { cvTemplates, exportFormats, colorSchemes, fontOptions, templateUtils } from '../utils/cvTemplates';
 import { exportCV } from '../utils/cvExport';
 
@@ -137,8 +137,8 @@ const InlineExportPanel = ({ cvText, formData, optimizedCV, coverLetter, showOri
                             key={template.id}
                             onClick={() => setSelectedTemplate(template.id)}
                             className={`relative cursor-pointer rounded-lg border-2 p-3 transition-all hover:shadow-sm ${selectedTemplate === template.id
-                                    ? 'border-blue-500 bg-blue-50'
-                                    : 'border-gray-200 hover:border-gray-300'
+                                ? 'border-blue-500 bg-blue-50'
+                                : 'border-gray-200 hover:border-gray-300'
                                 }`}
                         >
                             {selectedTemplate === template.id && (
@@ -193,8 +193,8 @@ const InlineExportPanel = ({ cvText, formData, optimizedCV, coverLetter, showOri
                             key={format.id}
                             onClick={() => setSelectedFormat(format.id)}
                             className={`relative cursor-pointer rounded-lg border-2 p-3 transition-all hover:shadow-sm ${selectedFormat === format.id
-                                    ? 'border-blue-500 bg-blue-50'
-                                    : 'border-gray-200 hover:border-gray-300'
+                                ? 'border-blue-500 bg-blue-50'
+                                : 'border-gray-200 hover:border-gray-300'
                                 }`}
                         >
                             {selectedFormat === format.id && (
@@ -248,8 +248,8 @@ const InlineExportPanel = ({ cvText, formData, optimizedCV, coverLetter, showOri
                                         key={key}
                                         onClick={() => setCustomColors(scheme)}
                                         className={`cursor-pointer rounded-lg border-2 p-2 transition-all ${JSON.stringify(customColors) === JSON.stringify(scheme)
-                                                ? 'border-blue-500 bg-blue-50'
-                                                : 'border-gray-200 hover:border-gray-300'
+                                            ? 'border-blue-500 bg-blue-50'
+                                            : 'border-gray-200 hover:border-gray-300'
                                             }`}
                                     >
                                         <div className="flex space-x-1 mb-1">
@@ -268,7 +268,7 @@ const InlineExportPanel = ({ cvText, formData, optimizedCV, coverLetter, showOri
                         {/* Font Options */}
                         <div className="space-y-2">
                             <label className="text-xs font-medium text-gray-700 flex items-center space-x-2">
-                                <Type className="h-3 w-3" />
+                                <TypeIcon className="h-3 w-3" />
                                 <span>Font</span>
                             </label>
                             <div className="grid grid-cols-3 gap-2">
@@ -277,8 +277,8 @@ const InlineExportPanel = ({ cvText, formData, optimizedCV, coverLetter, showOri
                                         key={key}
                                         onClick={() => setCustomFont(key)}
                                         className={`cursor-pointer rounded-lg border-2 p-2 text-center transition-all ${customFont === key
-                                                ? 'border-blue-500 bg-blue-50'
-                                                : 'border-gray-200 hover:border-gray-300'
+                                            ? 'border-blue-500 bg-blue-50'
+                                            : 'border-gray-200 hover:border-gray-300'
                                             }`}
                                     >
                                         <div className="text-xs font-medium text-gray-900 capitalize truncate" title={key}>
@@ -325,8 +325,8 @@ const InlineExportPanel = ({ cvText, formData, optimizedCV, coverLetter, showOri
                 {/* Export Status */}
                 {exportStatus && (
                     <div className={`p-2 rounded-lg text-xs ${exportStatus.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' :
-                            exportStatus.type === 'error' ? 'bg-red-50 text-red-800 border border-red-200' :
-                                'bg-blue-50 text-blue-800 border border-blue-200'
+                        exportStatus.type === 'error' ? 'bg-red-50 text-red-800 border border-red-200' :
+                            'bg-blue-50 text-blue-800 border border-blue-200'
                         }`}>
                         {exportStatus.message}
                     </div>

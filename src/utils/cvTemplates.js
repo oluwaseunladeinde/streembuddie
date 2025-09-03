@@ -69,6 +69,7 @@ export const cvTemplates = {
     features: ['Two-column layout', 'Skills visualization', 'Modern typography'],
     defaultColors: colorSchemes.modern,
     defaultFont: fontOptions.modern,
+    fontOptions: fontOptions,
     sections: {
       header: {
         layout: 'centered',
@@ -109,6 +110,7 @@ export const cvTemplates = {
     features: ['Clean typography', 'Traditional layout', 'ATS-friendly'],
     defaultColors: colorSchemes.classic,
     defaultFont: fontOptions.classic,
+    fontOptions: fontOptions,
     sections: {
       header: {
         layout: 'left-aligned',
@@ -149,6 +151,7 @@ export const cvTemplates = {
     features: ['Visual elements', 'Color accents', 'Creative layout'],
     defaultColors: colorSchemes.creative,
     defaultFont: fontOptions.clean,
+    fontOptions: fontOptions,
     sections: {
       header: {
         layout: 'centered',
@@ -189,6 +192,7 @@ export const cvTemplates = {
     features: ['100% ATS compatible', 'Keyword optimized', 'Simple formatting'],
     defaultColors: colorSchemes.professional,
     defaultFont: fontOptions.clean,
+    fontOptions: fontOptions,
     sections: {
       header: {
         layout: 'simple',
